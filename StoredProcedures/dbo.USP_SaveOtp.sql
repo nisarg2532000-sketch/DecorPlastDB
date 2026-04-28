@@ -17,7 +17,20 @@ CREATE PROCEDURE [dbo].[USP_SaveOtp]
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO OtpVerification(PhoneNumber, OtpCode, ExpiryTime, IsVerified)
-    VALUES (@PhoneNumber, @OtpCode, @ExpiryTime, 0)
+IF EXISTS (SELECT 1 FROM OtpVerification WHERE PhoneNumber = @PhoneNumber)
+    BEGIN
+        -- Phone exists, update OTP
+        UPDATE OtpVerification
+        SET OtpCode = @OtpCode,
+            ExpiryTime = @ExpiryTime,
+            IsVerified = 0
+        WHERE PhoneNumber = @PhoneNumber
+    END
+    ELSE
+    BEGIN
+        -- Phone not exists, insert new record
+        INSERT INTO OtpVerification (PhoneNumber, OtpCode, ExpiryTime, IsVerified)
+        VALUES (@PhoneNumber, @OtpCode, @ExpiryTime, 0)
+    END
 END
 GO
